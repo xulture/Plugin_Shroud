@@ -4,23 +4,23 @@ Shroud Plugin for CryEngine SDK
 Shroud Integration for Cryengine FreeSDK
 
 Installation / Integration
-==========================
+--------------------------
 
 * Download Plugin_SDK source code from https://github.com/hendrikp/Plugin_SDK
 
-Follow installation instructions; unzip it in CryEngine FreeSDK folder, inside Code, right next to CryEngine, Game, etc.  Compile it.  Apply FreeSDK code changes to get it to invoke Plugin_SDK.  Verify that you got everything right. :-)
+  Follow installation instructions; unzip it in CryEngine FreeSDK folder, inside Code, right next to CryEngine, Game, etc.  Compile it.  Apply FreeSDK code changes to get it to invoke Plugin_SDK.  Verify that you got everything right. :-)
 
 * Download Shroud Studio Basic from http://community.cloak-works.com/index.php/files/category/1-cloakworks-products/
 
-Install is anywhere you like it.  This is the tool where you'll be authoring the simulation.
+  Install is anywhere you like it.  This is the tool where you'll be authoring the simulation.
 
 * Download Shroud Runtime library (ShroudLibs_PC.exe)
 
-Install it to your CryEngine FreeSDK Code/ folder, leave the folder name 'Shroud Runtime'
+  Install it to your CryEngine FreeSDK Code/ folder, leave the folder name 'Shroud Runtime'
 
 * Download this Plugin_Shroud, and place it inside your Code/ Folder, right next to the previous folders.
 
-At the end, your Code/ contents should look similar to this:
+  At the end, your Code/ contents should look similar to this:
 ```
  Volume in drive C has no label.
  Volume Serial Number is E8A7-3F41
@@ -37,50 +37,53 @@ At the end, your Code/ contents should look similar to this:
 18/08/2013  02:24 PM    <DIR>          Shroud Runtime
 18/08/2013  02:24 PM    <DIR>          Solutions
 ```
-(plus whatever else you may have installed there)
+  (plus whatever else you may have installed there)
 
-Open VS2010, and compile.  On success run Editor.  Avoid Debug/Win32 (see known issues for more info)
+  Open VS2010, and compile.  On success run Editor.  Avoid Debug/Win32 (see known issues for more info)
 
 
 Usage
-=====
+-----
 
-* Export the object
-Create object in your 3d app.  Export it as .cfg.  Note -- both character simulated objects
-and GeomEntity will be simulated from this .cfg.
+1. Export the object
 
-If simulating character, create new attachment (note its name), attach .cfg to it. To Bone: <your root bone>
+   Create object in your 3d app.  Export it as .cfg.  Note -- both character simulated objects
+   and GeomEntity will be simulated from this .cfg.
 
-Plugin and Shroud Runtime will take care of skinning it to the animation.
+   If simulating character, create new attachment (note its name), attach .cfg to it. To Bone: <your root bone>
 
-Export the same object as .fbx
+   Plugin and Shroud Runtime will take care of skinning it to the animation.
 
-* In Shroud Studio, import this .fbx, and follow Cloak-Works.com tutorials on how to author simulation.
+   Export the same object as .fbx
 
-Export the file, leave it as 'xml' for the moment (see known issues below as to why binary doesn't work)
+2. In Shroud Studio, import this .fbx, and follow Cloak-Works.com tutorials on how to author simulation.
 
-TODO: add note about how to set coords x/y/z correctly.
+   Export the file, leave it as 'xml' for the moment (see known issues below as to why binary doesn't work)
 
-* In Editor, add this cgf as Geom Entity.  Open its flowgraph.  Create Start node, and create
-Shroud_Plugin/StaticObjectCloth.
+   TODO: add note about how to set coords x/y/z correctly.
 
-AssignGraphEntity to entityId, assign Start to Activate, pull up and navigate to .cwf file you exported in step 3.
+3. In Editor, add this cgf as Geom Entity.  Open its flowgraph.  Create Start node, and create
+   Shroud_Plugin/StaticObjectCloth.
 
-* CTRL-G and watch your simulation.
+   AssignGraphEntity to entityId, assign Start to Activate, pull up and navigate to .cwf file you exported in step 3.
 
-* Character simulation works exactly the same, the only exception is that you need to specify the name of the attachment that you noted in step 1.
+4. CTRL-G and watch your simulation.
+
+5. Character simulation works exactly the same, the only exception is that you need to specify the name of the attachment that you noted in step 1.
 
 Flownodes
-=========
+---------
+
 * ShroudPlugin::StaticObjectCloth
 
-This node is to be used on Geom Entity, to activate shroud simulation.
+  This node is to be used on Geom Entity, to activate shroud simulation.
 ```
 Inputs:
 EntityId (entity to simulate)
 Activate (enable shroud)
 sShroudFile (filename of the export from Shroud Studio -- can be inside a .pak)
 ```
+
 * ShroudPlugin::CharacterCloth
 ```
 Inputs:
@@ -91,26 +94,26 @@ sAttName (name of the character attachment to simulate)
 ```
 
 Notes
-=====
+-----
 
-Current implementation turns off simulation for objects that were not drawn 'previous or one before' frame.
-("or one before" seems to be very important when ocean is being drawn, order of 'previous frame' is affected of separate frame drawing the ocean -- at least that's my interpretation of behavour; could be mistaken)
+* Current implementation turns off simulation for objects that were not drawn 'previous or one before' frame.
+  ("or one before" seems to be very important when ocean is being drawn, order of 'previous frame' is affected of separate frame drawing the ocean -- at least that's my interpretation of behavour; could be mistaken)
 
-This is the cheapest and quickest way to establish that an object is not on screen (by comparing object's pRenderNode->GetDrawFrame, and current gEnv->pRenderer->GetFrameID()
+  This is the cheapest and quickest way to establish that an object is not on screen (by comparing object's pRenderNode->GetDrawFrame, and current gEnv->pRenderer->GetFrameID()
 
-A lot of the code was based on OpenGL Example Project 1.1 from cloak-works.com; many thanks for this!
+* A lot of the code was based on OpenGL Example Project 1.1 from cloak-works.com; many thanks for this!
 
-Further optimization based on distance from camera is possible.
+* Further optimization based on distance from camera is possible.
 
-Further optimization to multi-thread vertex copies is possible.
+* Further optimization to multi-thread vertex copies is possible.
 
-Collision with character and projectiles is currently not implemented.  Collision with terrain is possible but currently not implemented (eg: workout angle of the terrain right below the pivot, create 'plane' collider that matches that position.
-Currently, it is easy to simulate collision with terrain by creating Shroud Studio plane collider at the correct height.
+* Collision with character and projectiles is currently not implemented.  Collision with terrain is possible but currently not implemented (eg: workout angle of the terrain right below the pivot, create 'plane' collider that matches that position.
+  Currently, it is easy to simulate collision with terrain by creating Shroud Studio plane collider at the correct height.
 
-CShroudSystem.cpp is the main part of the code, so please poke around there to make it better!
+* CShroudSystem.cpp is the main part of the code, so please poke around there to make it better!
 
 Known issues
-============
+------------
 
 * Vertex colors are not propagated and used.  Unable to use shaders that depend on it.
 
@@ -135,12 +138,12 @@ Known issues
 
 
 Disclaimers
-===========
+-----------
 The code and plugin are not affiliated with, endorsed by, or supported by CloakWorks. All of the Shroud APIs, libs, docs, and other IP associated with Shroud are the sole property of CloakWorks.
 
 
 Shroud OpenGL Example License
-=============================
+-----------------------------
 Shroud Example Code License
 
 These files are part of the Shroud(TM) Example Projects.  For more information please visit http://www.cloak-works.com
