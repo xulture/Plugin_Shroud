@@ -75,17 +75,20 @@ Flownodes
 * ShroudPlugin::StaticObjectCloth
 
 This node is to be used on Geom Entity, to activate shroud simulation.
-
+```
 Inputs:
 EntityId (entity to simulate)
 Activate (enable shroud)
 sShroudFile (filename of the export from Shroud Studio -- can be inside a .pak)
-
+```
 * ShroudPlugin::CharacterCloth
+```
+Inputs:
 EntityId (entity to simulate)
 Activate (enable shroud)
 sShroudFile (filename of the export from Shroud Studio -- can be inside a .pak)
 sAttName (name of the character attachment to simulate)
+```
 
 Notes
 =====
