@@ -47,10 +47,10 @@ Usage
 
 1. Export the object
 
-   Create object in your 3d app.  Export it as .cfg.  Note -- both character simulated objects
-   and GeomEntity will be simulated from this .cfg.
+   Create object in your 3d app.  Export it as .cgf.  Note -- both character simulated objects
+   and GeomEntity will be simulated from this .cgf.
 
-   If simulating character, create new attachment (note its name), attach .cfg to it. To Bone: <your root bone>
+   If simulating character, create new attachment (note its name), attach .cfg to it. To Bone: your root bone
 
    Plugin and Shroud Runtime will take care of skinning it to the animation.
 
@@ -65,7 +65,7 @@ Usage
 3. In Editor, add this cgf as Geom Entity.  Open its flowgraph.  Create Start node, and create
    Shroud_Plugin/StaticObjectCloth.
 
-   AssignGraphEntity to entityId, assign Start to Activate, pull up and navigate to .cwf file you exported in step 3.
+   AssignGraphEntity to entityId, assign Start to Activate, assign the .cwf file you exported in step 3 to sShroudFile.
 
 4. CTRL-G and watch your simulation.
 
@@ -101,6 +101,8 @@ Notes
 
   This is the cheapest and quickest way to establish that an object is not on screen (by comparing object's pRenderNode->GetDrawFrame, and current gEnv->pRenderer->GetFrameID()
 
+* A lot of the code was based on Plugin_SDK and various Hendrikp's examplesl many thanks for this!
+
 * A lot of the code was based on OpenGL Example Project 1.1 from cloak-works.com; many thanks for this!
 
 * Further optimization based on distance from camera is possible.
@@ -115,7 +117,12 @@ Notes
 Known issues
 ------------
 
-* Vertex colors are not propagated and used.  Unable to use shaders that depend on it.
+* In Shroud Studio, when working on characters, Shroud will create 'transforms' for each of the bones involved.
+  When working on static geometry, you must create one transform yourself, and pick the mesh as 'Attach To Bone' bone name.
+  
+* object exported out of 3D app, MUST BE at 0,0,0
+
+* Vertex colors are stripped down during Shroud export.  Unable to use shaders that depend on it.
 
 * One submaterial per simulated object.  Shroud doesn't support simulations with multiple submaterials.
 
@@ -127,14 +134,18 @@ Known issues
 
 * Shroud supports instancing of the same simulation, however this plugin (currently) ignores this and creates new simulations multiple times.
 
-* If you have a brush on the scene with the same .cgf, it will vanish when simulation on another Geom Entity starts.
+* Shroud supports multiple simulations within the same .cwf file (in Pro version).  This plugin, however, currently doesn't support it.
 
-* Collision with the world doesn't work
+* If you have a brush on the scene with the same .cgf, it will vanish when simulation on another Geom Entity starts.
 
 * Resizing of shroud simulated objects is currently not supported by Shroud, nor by this plugin; however it is possible to apply this translation during copy back from shroud.
 
 * Large chunk of code was lazily copied from CShroudWrapper::ActivateCharacterCloth to CShroudWrapper::ActivateStatObjCloth, without following correct coding practices.  This really needs refactoring.
 
+* Plugin currently has to create object on the scene with the same number of vertices/indices/uvw's etc.  This is simply because I haven't worked out correct way to allocate all CryEngine resources without crashing the engine.
+  If you happen to crash on ctrl-G, chances are -- your object from Shroud has more vertices than the one you exported to engine (as .cgf).
+  
+* Shroud can export a file as XML or in binary format.  However, some trivial bug in the plugin currently prevents use of .cwb files; I haven't attempted to fix it yet.
 
 
 Disclaimers
