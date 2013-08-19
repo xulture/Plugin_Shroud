@@ -21,22 +21,22 @@ Installation / Integration
 * Download this Plugin_Shroud, and place it inside your Code/ Folder, right next to the previous folders.
 
   At the end, your Code/ contents should look similar to this:
-```
- Volume in drive C has no label.
- Volume Serial Number is E8A7-3F41
-
- Directory of C:\ws\thegame\Code
-
-18/08/2013  02:24 PM    <DIR>          .
-18/08/2013  02:24 PM    <DIR>          ..
-18/08/2013  02:23 PM    <DIR>          CryEngine
-18/08/2013  02:24 PM    <DIR>          Game
-18/08/2013  02:24 PM    <DIR>          Plugin_SDK
-19/08/2013  11:03 PM    <DIR>          Plugin_Shroud
-18/08/2013  02:24 PM    <DIR>          SDKs
-18/08/2013  02:24 PM    <DIR>          Shroud Runtime
-18/08/2013  02:24 PM    <DIR>          Solutions
-```
+    ```
+     Volume in drive C has no label.
+     Volume Serial Number is E8A7-3F41
+    
+     Directory of C:\ws\thegame\Code
+    
+    18/08/2013  02:24 PM    <DIR>          .
+    18/08/2013  02:24 PM    <DIR>          ..
+    18/08/2013  02:23 PM    <DIR>          CryEngine
+    18/08/2013  02:24 PM    <DIR>          Game
+    18/08/2013  02:24 PM    <DIR>          Plugin_SDK
+    19/08/2013  11:03 PM    <DIR>          Plugin_Shroud
+    18/08/2013  02:24 PM    <DIR>          SDKs
+    18/08/2013  02:24 PM    <DIR>          Shroud Runtime
+    18/08/2013  02:24 PM    <DIR>          Solutions
+    ```
   (plus whatever else you may have installed there)
 
   Open VS2010, and compile.  On success run Editor.  Avoid Debug/Win32 (see known issues for more info)
