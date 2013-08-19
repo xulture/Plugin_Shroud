@@ -60,7 +60,19 @@ Usage
 
    Export the file, leave it as 'xml' for the moment (see known issues below as to why binary doesn't work)
 
-   TODO: add note about how to set coords x/y/z correctly.
+   While exporting for CryEngine, out of Shroud Studio, you must use these settings:
+   ```
+   Format: XML
+   Convert Scene: x (ticked)
+   Units: Meters
+   Convert X Axis to: x
+   Convert Y Axis to: z
+   Handedness: RightHanded
+   
+   Include Character Data: (un-ticked)
+   ```
+   See note in Known Issues about exporting Binary format.
+   
 
 3. In Editor, add this cgf as Geom Entity.  Open its flowgraph.  Create Start node, and create
    Shroud_Plugin/StaticObjectCloth.
