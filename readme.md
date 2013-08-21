@@ -1,7 +1,25 @@
 Shroud Plugin for CryEngine SDK
 =====================================
 
-Shroud Integration for Cryengine FreeSDK
+Integration of Cloak Works' Shroud Cloth Simulation into CryEngine FreeSDK
+
+Please visit: http://www.cloak-works.com for information and tutorials about Shroud, 
+and http://www.crydev.net for information and tutorials about CryEngine FreeSDK
+
+This plugin integrates the two solutions published, supported, and maintained by 
+Cloak Works, and CryTek respectively.  They have no responsibility nor obligation 
+to support this plugin, in any way, shape or form.  As per license file, you are 
+free to use, re-use, modify, redistribute _this plugin_ whichever way suits.  
+
+Shroud runtime source code MUST BE obtained directly from www.cloak-works.com, 
+and used within the license terms.  CryEngine FreeSDK MUST BE obtained directly 
+from www.crydev.net, and used within the license terms.
+
+This plugin will evaporate your PC if you violate their terms and conditions.
+
+Feel free to use this code as a guide how to integrate Shroud into other engines, 
+and/or as a guide how to do vertex/mesh modification at runtime in CryEngine 
+FreeSDK (and any other CryEngine code-base that would be compatible).
 
 Installation / Integration
 --------------------------
@@ -180,3 +198,5 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+![ghcount](http://www.allegragames.com/ghcount.gif)
