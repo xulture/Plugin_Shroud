@@ -108,7 +108,7 @@ namespace ShroudPlugin
                 }
 
                 // Game Objects
-                if ( gEnv->pGameFramework && ( enFactoryType == FT_All || enFactoryType == FT_GameObjectExtension ) )
+                if ( gEnv->pGame && gEnv->pGame->GetIGameFramework() && ( enFactoryType == FT_All || enFactoryType == FT_GameObjectExtension ) )
                 {
                     if ( !bUnregister )
                     {

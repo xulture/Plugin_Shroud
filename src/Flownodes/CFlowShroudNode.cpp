@@ -44,7 +44,7 @@ namespace ShroudPlugin
                     InputPortConfig_Void   ( "Activate",                _HELP( "Activate Character Cloth" ) ),
                     InputPortConfig<string>( "file_ShroudFile", "",     _HELP( "Shroud File (set on Activate)" ),        "sShroudFile", _UICONFIG( "" ) ),
                     InputPortConfig<string>( "AttachmentName",  "cape", _HELP( "Name of Attachment (set on Activate)" ), "sAttName", _UICONFIG( "" ) ),
-                    InputPortConfig_Null(),
+                    {0},
                 };
 
                 config.pInputPorts = inputs;
@@ -114,7 +114,7 @@ namespace ShroudPlugin
                 {
                     InputPortConfig_Void   ( "Activate",                _HELP( "Activate Static Object Cloth" ) ),
                     InputPortConfig<string>( "file_ShroudFile", "",     _HELP( "Shroud File (set on Activate)" ),        "sShroudFile", _UICONFIG( "" ) ),
-                    InputPortConfig_Null(),
+                    {0},
                 };
 
                 config.pInputPorts = inputs;

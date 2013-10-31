@@ -86,10 +86,6 @@ namespace ShroudPlugin
             {
                 pShroudObject = NULL;
                 pShroudInstance = NULL;
-                spVtx = NULL;
-                spNrm = NULL;
-                spIdx = NULL;
-                spUVs = NULL;
                 vtxCount = 0;
                 idxCount = 0;
                 pStatObj = NULL;

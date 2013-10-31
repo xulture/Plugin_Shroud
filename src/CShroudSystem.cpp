@@ -65,9 +65,9 @@ namespace ShroudPlugin
         m_pShroudMgr = CloakWorks::CreateShroudMgr( settings );
 
         // register listeners
-        if ( gEnv && gEnv->pGameFramework )
+        if ( gEnv && gEnv->pGame && gEnv->pGame->GetIGameFramework() )
         {
-            gEnv->pGameFramework->RegisterListener( this, "Shroud", eFLPriority_Default );
+            gEnv->pGame->GetIGameFramework()->RegisterListener( this, "Shroud", FRAMEWORKLISTENERPRIORITY_DEFAULT );
             ISystemEventDispatcher* pDispatcher = gEnv->pSystem->GetISystemEventDispatcher();
 
             if ( pDispatcher )
@@ -162,19 +162,6 @@ namespace ShroudPlugin
     bool CShroudWrapper::Release()
     {
 
-        //if ( gEnv && gEnv->pGameFramework && gEnv->pSystem )
-        //{
-        //    // Remove Listeners so that there are no calls into deleted system
-        //    gEnv->pGameFramework->UnregisterListener( this );
-        //
-        //    ISystemEventDispatcher* pDispatcher = gEnv->pSystem->GetISystemEventDispatcher();
-        //
-        //    if ( pDispatcher )
-        //    {
-        //        pDispatcher->RemoveListener( this );
-        //    }
-        //}
-
         for ( tSimHolder::const_iterator iter = m_pSimulations.begin(); iter != m_pSimulations.end(); ++iter )
         {
             CShroudSimulation* pCurSim = ( *iter ).second;
@@ -188,11 +175,6 @@ namespace ShroudPlugin
             {
                 pCurSim->pOrigStatObj->SetFlags( ( *iter ).second->pOrigStatObj->GetFlags() & 0xFFFFFFFE ); // unhide original
             }
-
-            //gEnv->pEntitySystem->RemoveEntityEventListener( pCurSim->pEntity->GetId(), ENTITY_EVENT_DONE, this );
-            //gEnv->pEntitySystem->RemoveEntityEventListener( pCurSim->pEntity->GetId(), ENTITY_EVENT_VISIBLITY, this );
-            //gEnv->pEntitySystem->RemoveEntityEventListener( pCurSim->pEntity->GetId(), ENTITY_EVENT_NOT_SEEN_TIMEOUT, this );
-            //gEnv->pEntitySystem->RemoveEntityEventListener( pCurSim->pEntity->GetId(), ENTITY_EVENT_RENDER, this );
 
             delete ( CShroudSimulation* )( *iter ).second;
         }
@@ -260,7 +242,7 @@ namespace ShroudPlugin
 
                 pNewEntity->SetStatObj( pNewStatObj, 0, false );
                 pNewEntity->SetWorldTM( pEntity->GetWorldTM() );
-                pNewEntity->SetMaterial( pCharacter->GetIAttachmentManager()->GetInterfaceByName( sAttName )->GetIAttachmentObject()->GetMaterial() );
+                pNewEntity->SetMaterial( pCharacter->GetIAttachmentManager()->GetInterfaceByName( sAttName )->GetIAttachmentObject()->GetReplacementMaterial() );
 
                 pCurSim->pStatObj = pNewStatObj;
                 pCurSim->pCharEntity = pEntity; // for access to location and skeleton
@@ -413,7 +395,7 @@ namespace ShroudPlugin
                 if ( pCurSim->idxCount != indexCount )
                 {
                     pMesh->SetIndexCount( indexCount );
-                    pMesh->SetFacesCount( int( indexCount / 3 ) );
+                    pMesh->SetFaceCount( int( indexCount / 3 ) );
                     pCurSim->idxCount = indexCount;
                 }
 
@@ -467,7 +449,7 @@ namespace ShroudPlugin
                 // convoluted method with apparent pointless calls but the only way I discovered to force reload of UVs
                 CMesh* newMesh = pIdxMesh->GetMesh();
                 pCurSim->pRenderMesh->LockForThreadAccess();
-                pCurSim->pRenderMesh->SetMesh( *newMesh );  // <-- set to self to reload UVs and tangents, but doesn't seem to reload indices
+                pCurSim->pRenderMesh->SetMesh( *newMesh, 0, 0, 0, true );  // <-- set to self to reload UVs and tangents, but doesn't seem to reload indices
                 pCurSim->pRenderMesh->UpdateIndices( newIdx, pCurSim->idxCount, 0, 0 );
                 pCurSim->pEntity->SetStatObj( pCurSim->pStatObj, 0, false );
 
@@ -476,13 +458,6 @@ namespace ShroudPlugin
                 pCurSim->pRenderMesh = pCurSim->pStatObj ? pCurSim->pStatObj->GetRenderMesh() : NULL;
             }
         }
-
-        // register listener
-        //pCurSim->pCharEntity->SetFlags( pCurSim->pCharEntity->GetFlags() | ENTITY_FLAG_SEND_NOT_SEEN_TIMEOUT | ENTITY_FLAG_SEND_RENDER_EVENT );
-        //gEnv->pEntitySystem->AddEntityEventListener( pCurSim->pCharEntity->GetId(), ENTITY_EVENT_DONE, this );
-        //gEnv->pEntitySystem->AddEntityEventListener( pCurSim->pCharEntity->GetId(), ENTITY_EVENT_VISIBLITY, this );
-        //gEnv->pEntitySystem->AddEntityEventListener( pCurSim->pCharEntity->GetId(), ENTITY_EVENT_NOT_SEEN_TIMEOUT, this );
-        //gEnv->pEntitySystem->AddEntityEventListener( pCurSim->pCharEntity->GetId(), ENTITY_EVENT_RENDER, this );
 
         IEntityRenderProxy* pRenderProxy = ( IEntityRenderProxy* )pCurSim->pCharEntity->GetProxy( ENTITY_PROXY_RENDER ); // need to check if main char entity is drawn
         pCurSim->pRenderNode = pRenderProxy->GetRenderNode();
@@ -657,7 +632,7 @@ namespace ShroudPlugin
                 if ( pCurSim->idxCount != indexCount )
                 {
                     pMesh->SetIndexCount( indexCount );
-                    pMesh->SetFacesCount( int( indexCount / 3 ) );
+                    pMesh->SetFaceCount( int( indexCount / 3 ) );
                     pCurSim->idxCount = indexCount;
                 }
 
@@ -711,7 +686,7 @@ namespace ShroudPlugin
                 // convoluted method with apparent pointless calls but the only way I discovered to force reload of UVs
                 CMesh* newMesh = pIdxMesh->GetMesh();
                 pCurSim->pRenderMesh->LockForThreadAccess();
-                pCurSim->pRenderMesh->SetMesh( *newMesh );  // <-- set to self to reload UVs and tangents, but doesn't seem to reload indices
+                pCurSim->pRenderMesh->SetMesh( *newMesh, 0, 0, 0, true );  // <-- set to self to reload UVs and tangents, but doesn't seem to reload indices
                 pCurSim->pRenderMesh->UpdateIndices( newIdx, pCurSim->idxCount, 0, 0 );
                 pCurSim->pEntity->SetStatObj( pCurSim->pStatObj, 0, false );
 
@@ -722,12 +697,6 @@ namespace ShroudPlugin
                 pCurSim->pStatObj->SetMaterial( pCurSim->pOrigStatObj->GetMaterial() );
             }
         }
-
-        //pCurSim->pEntity->SetFlags( pCurSim->pEntity->GetFlags() | ENTITY_FLAG_SEND_NOT_SEEN_TIMEOUT | ENTITY_FLAG_SEND_RENDER_EVENT );
-        //gEnv->pEntitySystem->AddEntityEventListener( pCurSim->pEntity->GetId(), ENTITY_EVENT_DONE, this );
-        //gEnv->pEntitySystem->AddEntityEventListener( pCurSim->pEntity->GetId(), ENTITY_EVENT_VISIBLITY, this );
-        //gEnv->pEntitySystem->AddEntityEventListener( pCurSim->pEntity->GetId(), ENTITY_EVENT_NOT_SEEN_TIMEOUT, this );
-        //gEnv->pEntitySystem->AddEntityEventListener( pCurSim->pEntity->GetId(), ENTITY_EVENT_RENDER, this );
 
         IEntityRenderProxy* pRenderProxy = ( IEntityRenderProxy* )pCurSim->pEntity->GetProxy( ENTITY_PROXY_RENDER );
         pCurSim->pRenderNode = pRenderProxy->GetRenderNode();
@@ -741,9 +710,6 @@ namespace ShroudPlugin
 
     void CShroudWrapper::OnPreRender()
     {
-        //gPlugin->LogError( "Starting OnPreRender" );
-
-        //gPlugin->LogError( "l::PreRender-4" );
         if ( m_bIsUpdating || m_iNextFreeSim == 1 )
         {
             // no simulations created or update already started
@@ -752,27 +718,19 @@ namespace ShroudPlugin
         }
 
         float fFrameTime = gEnv->pTimer->GetFrameTime();
-        \
         //
         // start updates via Job Manager (copy from CE)
         //
         m_bIsUpdating = true;
-        // CloakWorks::JobHandle h[1000];
 
         int i = 0;
 
         for ( tSimHolder::const_iterator iter = m_pSimulations.begin(); iter != m_pSimulations.end(); ++iter )
         {
             ( ( CShroudSimulation* )( *iter ).second )->m_fSimTime = fFrameTime;
-            //m_pJobMgr->LaunchJob( (CloakWorks::JobEntryFunction) &CShroudWrapper::StartUpdate, ( CShroudSimulation* )( *iter ).second );
             StartUpdate( ( CShroudSimulation* )( *iter ).second );
             i++;
         }
-
-        //for ( int j = 0; j < i; ++j )
-        //{
-        //    m_pJobMgr->WaitForJob( h[j] );
-        //}
 
         //
         // wait for all updates to complete
@@ -789,18 +747,12 @@ namespace ShroudPlugin
 
         for ( tSimHolder::const_iterator iter = m_pSimulations.begin(); iter != m_pSimulations.end(); ++iter )
         {
-            //h[i] = m_pJobMgr->LaunchJob( &FinshUpdate, ( CShroudSimulation* )( *iter ).second );
             FinishUpdate( ( CShroudSimulation* )( *iter ).second );
             i++;
         }
 
-        //for ( int j = 0; j < i; ++j )
-        //{
-        //    m_pJobMgr->WaitForJob( h[j] );
-        //}
 
         m_bIsUpdating = false;
-        //gPlugin->LogError( "Finished OnPreRender" );
     }
 
     void CShroudWrapper::StartUpdate( CShroudSimulation* pCurSim )
@@ -814,10 +766,6 @@ namespace ShroudPlugin
         const SViewParams* vp = iv->GetView( iv->GetActiveViewId() )->GetCurrentParams();
         CloakWorks::Vector3 cameraDir( CloakWorks::Vector3( vp->rotation.GetFwdX(), vp->rotation.GetFwdY(), vp->rotation.GetFwdZ() )  );
 
-        //AABB aabb;
-        //pCurSim->pEntity->GetWorldBounds( aabb );
-        //bool bAllIn = false;
-        //bool bVisible = ( CULL_EXCLUSION != gEnv->pSystem->GetIRenderer()->GetCamera().IsAABBVisible_FH( aabb, &bAllIn ) );
         int last_draw = pCurSim->pRenderNode->GetDrawFrame();
         int frame_id = gEnv->pRenderer->GetFrameID( );
         //gPlugin->LogAlways( "Last draw = %d, frame_id = %d", last_draw, frame_id );
