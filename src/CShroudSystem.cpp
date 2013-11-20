@@ -236,7 +236,7 @@ namespace ShroudPlugin
 
                 SEntitySpawnParams params;
                 params.sName = "shroud_char_sim";
-                params.nFlags = ENTITY_FLAG_CASTSHADOW | ENTITY_FLAG_RECVWIND | ENTITY_FLAG_CLIENT_ONLY | ENTITY_FLAG_SPAWNED | ENTITY_FLAG_SEND_NOT_SEEN_TIMEOUT | ENTITY_FLAG_SEND_RENDER_EVENT;
+                params.nFlags = ENTITY_FLAG_CASTSHADOW | ENTITY_FLAG_CLIENT_ONLY | ENTITY_FLAG_SPAWNED;
                 params.pClass = pEntityClass;
                 IEntity* pNewEntity = gEnv->pEntitySystem->SpawnEntity( params );
 
@@ -518,7 +518,7 @@ namespace ShroudPlugin
 
         SEntitySpawnParams params;
         params.sName = "shroud_static_sim";
-        params.nFlags = ENTITY_FLAG_CASTSHADOW | ENTITY_FLAG_RECVWIND | ENTITY_FLAG_CLIENT_ONLY | ENTITY_FLAG_SPAWNED;
+        params.nFlags = ENTITY_FLAG_CASTSHADOW | ENTITY_FLAG_CLIENT_ONLY | ENTITY_FLAG_SPAWNED;
         params.pClass = pEntityClass;
         IEntity* pNewEntity = gEnv->pEntitySystem->SpawnEntity( params );
 
