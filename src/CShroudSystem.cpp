@@ -337,7 +337,7 @@ namespace ShroudPlugin
 
                 if ( transform->GetBoneName() )
                 {
-                    pCurSim->m_transformToBoneMap[i] = pCurSim->pCharEntity->GetCharacter( 0 )->GetISkeletonPose()->GetJointIDByName( transform->GetBoneName() );
+                    pCurSim->m_transformToBoneMap[i] = pCurSim->pCharEntity->GetCharacter( 0 )->GetIDefaultSkeleton().GetJointIDByName( transform->GetBoneName() );
                 }
             }
 
@@ -350,7 +350,7 @@ namespace ShroudPlugin
 
                 if ( collider->GetBoneName() )
                 {
-                    pCurSim->m_colliderToBoneMap[i] = pCurSim->pCharEntity->GetCharacter( 0 )->GetISkeletonPose()->GetJointIDByName( collider->GetBoneName() );
+                    pCurSim->m_colliderToBoneMap[i] = pCurSim->pCharEntity->GetCharacter( 0 )->GetIDefaultSkeleton().GetJointIDByName( collider->GetBoneName() );
                 }
             }
         }
