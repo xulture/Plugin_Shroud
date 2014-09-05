@@ -67,6 +67,7 @@ namespace ShroudPlugin
             IAttachment* pAttachment;
             IRenderMesh* pRenderMesh;
             IRenderNode* pRenderNode;
+            const char* sFile;
 
             bool bIsCharacter;
             bool bIsDisabled;
@@ -77,7 +78,7 @@ namespace ShroudPlugin
                 Init();
             }
 
-            CShroudSimulation( IEntity* pEntity );
+            CShroudSimulation( IEntity* pEntity, const char* sFile );
 
             ~CShroudSimulation();
 
@@ -116,8 +117,8 @@ namespace ShroudPlugin
 
             bool ActivateCharacterCloth( IEntity* pEntity, const char* sFile, const char* sAttName );
             bool ActivateStatObjCloth( IEntity* pEntity, const char* sFile );
-            bool StartActivation( CShroudSimulation* pCurSim, const char* sFile );
-            bool FinishActivation( CShroudSimulation* pCurSim, const char* sFile );
+            bool StartActivation( CShroudSimulation* pCurSim );
+            bool FinishActivation( CShroudSimulation* pCurSim );
             bool AlreadyActivated( IEntity* pEntity, const char* sAttName );
             void EntityRemoved( IEntity* pEntity );
             void StartUpdate( CShroudSimulation* pCurSim );

@@ -18,11 +18,12 @@ namespace ShroudPlugin
         gPlugin->LogWarning( "%s", message.GetStr() );
     }
 
-    CShroudSimulation::CShroudSimulation( IEntity* pEntity )
+    CShroudSimulation::CShroudSimulation( IEntity* pEntity, const char* sFile )
     {
         Init();
         this->pEntity = pEntity;
-        entityId = pEntity->GetId();
+        this->entityId = pEntity->GetId();
+        this->sFile = sFile;
     }
 
     CShroudSimulation::~CShroudSimulation()
@@ -209,9 +210,9 @@ namespace ShroudPlugin
             return( false );
         }
 
-        CShroudSimulation* pCurSim = new CShroudSimulation( pEntity );
+        CShroudSimulation* pCurSim = new CShroudSimulation( pEntity, sFile );
 
-        if ( !StartActivation( pCurSim, sFile ) )
+        if ( !StartActivation( pCurSim ) )
         {
             delete pCurSim;
             return( false );
@@ -266,7 +267,7 @@ namespace ShroudPlugin
             return( false );
         }
 
-        return FinishActivation( pCurSim, sFile );
+        return FinishActivation( pCurSim );
     }
 
     bool CShroudWrapper::ActivateStatObjCloth( IEntity* pEntity, const char* sFile )
@@ -291,9 +292,9 @@ namespace ShroudPlugin
             return( false );
         }
 
-        CShroudSimulation* pCurSim = new CShroudSimulation( pEntity );
+        CShroudSimulation* pCurSim = new CShroudSimulation( pEntity, sFile );
 
-        if ( !StartActivation( pCurSim, sFile ) )
+        if ( !StartActivation( pCurSim ) )
         {
             delete pCurSim;
             return( false );
@@ -337,16 +338,16 @@ namespace ShroudPlugin
         pCurSim->pOrigStatObj->SetFlags( pCurSim->pOrigStatObj->GetFlags() || STATIC_OBJECT_HIDDEN );
         gEnv->pGame->GetIGameFramework()->GetIGameObjectSystem()->CreateGameObjectForEntity( pCurSim->entityId );
 
-        return FinishActivation( pCurSim, sFile );
+        return FinishActivation( pCurSim );
     }
 
-    bool CShroudWrapper::StartActivation( CShroudSimulation* pCurSim, const char* sFile )
+    bool CShroudWrapper::StartActivation( CShroudSimulation* pCurSim )
     {
 
         // check if we already have this sFile loaded
         CloakWorks::IShroudObjectPtr pShObj;
 
-        if ( pShObj = FindLoadedObject( sFile ) )
+        if ( pShObj = FindLoadedObject( pCurSim->sFile ) )
         {
             pCurSim->pShroudObject = pShObj;
         }
@@ -358,7 +359,7 @@ namespace ShroudPlugin
 
             char* buffer = NULL;
             size_t length = 0;
-            FILE* m_infile = fopen( sFile, "rb" );
+            FILE* m_infile = fopen( pCurSim->sFile, "rb" );
 
             if ( m_infile )
             {
@@ -380,7 +381,7 @@ namespace ShroudPlugin
 
             else
             {
-                gPlugin->LogError( "File not found %s", sFile );
+                gPlugin->LogError( "File not found %s", pCurSim->sFile );
                 return( false );
             }
 
@@ -406,7 +407,7 @@ namespace ShroudPlugin
 
         if ( !pCurSim->pShroudInstance )
         {
-            gPlugin->LogError( "[%s] Unable to create ShroudInstance", sFile );
+            gPlugin->LogError( "[%s] Unable to create ShroudInstance", pCurSim->sFile );
             delete pCurSim;
             return( false );
         }
@@ -415,7 +416,7 @@ namespace ShroudPlugin
 
     }
 
-    bool CShroudWrapper::FinishActivation( CShroudSimulation* pCurSim, const char* sFile )
+    bool CShroudWrapper::FinishActivation( CShroudSimulation* pCurSim )
     {
 
         if ( pCurSim->bIsCharacter )
@@ -480,7 +481,7 @@ namespace ShroudPlugin
                 {
                     gPlugin->LogError(
                         "[%s] Index or Vertex Count mismatch: [cgf=v%d,i%d], [cwf=v%d,i%d]",
-                        sFile,
+                        pCurSim->sFile,
                         pCurSim->vtxCount,
                         pCurSim->idxCount,
                         vertCount,
@@ -574,7 +575,7 @@ namespace ShroudPlugin
         IEntityRenderProxy* pRenderProxy = ( IEntityRenderProxy* )pCurSim->pCharEntity->GetProxy( ENTITY_PROXY_RENDER ); // need to check if main char entity is drawn
         pCurSim->pRenderNode = pRenderProxy->GetRenderNode();
 
-        gPlugin->LogAlways( "[%s] Simulation [%s] created", sFile, pCurSim->pEntity->GetName() );
+        gPlugin->LogAlways( "[%s] Simulation [%s] created", pCurSim->sFile, pCurSim->pEntity->GetName() );
 
         m_pSimulations[m_iNextFreeSim] = pCurSim;
         m_iNextFreeSim++;
@@ -584,6 +585,18 @@ namespace ShroudPlugin
 
     CloakWorks::IShroudObjectPtr CShroudWrapper::FindLoadedObject( const char* sFile )
     {
+        for ( tSimHolder::const_iterator iter = m_pSimulations.begin(); iter != m_pSimulations.end(); ++iter )
+        {
+            CShroudSimulation* pCurSim = ( *iter ).second;
+
+            if ( !strcmp( sFile, pCurSim->sFile ) )
+            {
+                gPlugin->LogAlways( "reusing shroud_object already loaded" );
+                return pCurSim->pShroudObject;
+            }
+        }
+
+        // else
         return NULL;
     }
 
