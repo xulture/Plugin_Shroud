@@ -15,7 +15,7 @@ namespace ShroudPlugin
 
     void CLogger::HandleWarning ( const CloakWorks::String& message )
     {
-        gPlugin->LogWarning( "%s", message );
+        gPlugin->LogWarning( "%s", message.GetStr() );
     }
 
     CShroudSimulation::CShroudSimulation( IEntity* pEntity )
@@ -321,7 +321,7 @@ namespace ShroudPlugin
 
         if ( !pCurSim->pShroudInstance )
         {
-            gPlugin->LogError( "Unable to create ShroudInstance" );
+            gPlugin->LogError( "[%s] Unable to create ShroudInstance", sFile );
             delete pCurSim;
             return( bRet );
         }
@@ -383,6 +383,21 @@ namespace ShroudPlugin
             {
                 pCurSim->vtxCount = pMesh->GetVertexCount();
                 pCurSim->idxCount = pMesh->GetIndexCount();
+
+                if ( pCurSim->vtxCount < vertCount || pCurSim->idxCount < indexCount )
+                {
+                    gPlugin->LogError(
+                        "[%s] Index or Vertex Count mismatch: [cgf=v%d,i%d], [cwf=v%d,i%d]",
+                        sFile,
+                        pCurSim->vtxCount,
+                        pCurSim->idxCount,
+                        vertCount,
+                        indexCount
+                    );
+                    pCurSim->pOrigStatObj->SetFlags( pCurSim->pOrigStatObj->GetFlags() & 0xFFFFFFFE ); // undo hide
+                    delete pCurSim;
+                    return( bRet );
+                }
 
                 if ( pCurSim->vtxCount != vertCount )
                 {
@@ -462,7 +477,7 @@ namespace ShroudPlugin
         IEntityRenderProxy* pRenderProxy = ( IEntityRenderProxy* )pCurSim->pCharEntity->GetProxy( ENTITY_PROXY_RENDER ); // need to check if main char entity is drawn
         pCurSim->pRenderNode = pRenderProxy->GetRenderNode();
 
-        gPlugin->LogAlways( "Simulation [%s] created", pCurSim->pEntity->GetName() );
+        gPlugin->LogAlways( "[%s] Simulation [%s] created", sFile, pCurSim->pEntity->GetName() );
 
         m_pSimulations[m_iNextFreeSim] = pCurSim;
         m_iNextFreeSim++;
@@ -587,7 +602,7 @@ namespace ShroudPlugin
 
         if ( !pCurSim->pShroudInstance )
         {
-            gPlugin->LogError( "Unable to create ShroudInstance" );
+            gPlugin->LogError( "[%s] Unable to create ShroudInstance", sFile );
             delete pCurSim;
             return( bRet );
         }
@@ -620,6 +635,21 @@ namespace ShroudPlugin
             {
                 pCurSim->vtxCount = pMesh->GetVertexCount();
                 pCurSim->idxCount = pMesh->GetIndexCount();
+
+                if ( pCurSim->vtxCount < vertCount || pCurSim->idxCount < indexCount )
+                {
+                    gPlugin->LogError(
+                        "[%s] Index or Vertex Count mismatch: [cgf=v%d,i%d], [cwf=v%d,i%d]",
+                        sFile,
+                        pCurSim->vtxCount,
+                        pCurSim->idxCount,
+                        vertCount,
+                        indexCount
+                    );
+                    pCurSim->pOrigStatObj->SetFlags( pCurSim->pOrigStatObj->GetFlags() & 0xFFFFFFFE ); // undo hide
+                    delete pCurSim;
+                    return( bRet );
+                }
 
                 if ( pCurSim->vtxCount != vertCount )
                 {
@@ -701,7 +731,7 @@ namespace ShroudPlugin
         IEntityRenderProxy* pRenderProxy = ( IEntityRenderProxy* )pCurSim->pEntity->GetProxy( ENTITY_PROXY_RENDER );
         pCurSim->pRenderNode = pRenderProxy->GetRenderNode();
 
-        gPlugin->LogAlways( "Simulation [%s] created", pCurSim->pEntity->GetName() );
+        gPlugin->LogAlways( "[%s] Simulation [%s] created", sFile, pCurSim->pEntity->GetName() );
         m_pSimulations[m_iNextFreeSim] = pCurSim;
         m_iNextFreeSim++;
 

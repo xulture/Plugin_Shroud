@@ -239,8 +239,9 @@ stylecode.bat
       <PreprocessorDefinitions>_FORCEDLL;PURE_CLIENT;SHROUDPLUGIN_EXPORTS;%(PreprocessorDefinitions);CW_DEBUG;_DEBUG</PreprocessorDefinitions>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <FloatingPointModel>Fast</FloatingPointModel>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -249,7 +250,7 @@ stylecode.bat
       <OptimizeReferences>
       </OptimizeReferences>
       <AdditionalDependencies>%(AdditionalDependencies);Shroud.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);$(ProjectDir)..\..\Shroud Runtime\Lib\$(Platform)\VS2010\Final_MD</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);$(ProjectDir)..\..\Shroud Runtime\Lib\$(Platform)\VS2010\Debug_MD</AdditionalLibraryDirectories>
       <LinkStatus>true</LinkStatus>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
