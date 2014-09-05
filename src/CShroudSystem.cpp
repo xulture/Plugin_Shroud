@@ -189,11 +189,9 @@ namespace ShroudPlugin
 
     bool CShroudWrapper::ActivateCharacterCloth( IEntity* pEntity, const char* sFile, const char* sAttName )
     {
-        bool bRet = false;
-
         if ( pEntity == NULL )
         {
-            return( bRet );
+            return( false );
         }
 
         else
@@ -208,10 +206,16 @@ namespace ShroudPlugin
         // CE or a user may attempt to activate it more than once
         if ( AlreadyActivated( pEntity, sAttName ) )
         {
-            return( bRet );
+            return( false );
         }
 
         CShroudSimulation* pCurSim = new CShroudSimulation( pEntity );
+
+        if ( !StartActivation( pCurSim, sFile ) )
+        {
+            delete pCurSim;
+            return( false );
+        }
 
         // find stuff ce3 side
         pCurSim->pStatObj = pCurSim->pEntity ? pCurSim->pEntity->GetStatObj( 0 ) : NULL;
@@ -259,7 +263,7 @@ namespace ShroudPlugin
         {
             gPlugin->LogError( "Object invalid or no attachment %s present in character, no simulation possible", sAttName );
             delete pCurSim;
-            return( bRet );
+            return( false );
         }
 
         return FinishActivation( pCurSim, sFile );
@@ -267,11 +271,9 @@ namespace ShroudPlugin
 
     bool CShroudWrapper::ActivateStatObjCloth( IEntity* pEntity, const char* sFile )
     {
-        bool bRet = false;
-
         if ( pEntity == NULL )
         {
-            return( bRet );
+            return( false );
         }
 
         else
@@ -286,10 +288,16 @@ namespace ShroudPlugin
         // CE or a user may attempt to activate it more than once
         if ( AlreadyActivated( pEntity, "" ) )
         {
-            return( bRet );
+            return( false );
         }
 
         CShroudSimulation* pCurSim = new CShroudSimulation( pEntity );
+
+        if ( !StartActivation( pCurSim, sFile ) )
+        {
+            delete pCurSim;
+            return( false );
+        }
 
         // find stuff ce3 side
         pCurSim->pOrigStatObj = pCurSim->pEntity ? pCurSim->pEntity->GetStatObj( 0 ) : NULL;
@@ -301,7 +309,7 @@ namespace ShroudPlugin
         {
             gPlugin->LogError( "Object invalid, no simulation possible" );
             delete pCurSim;
-            return( bRet );
+            return( false );
         }
 
         IStatObj* pNewStatObj = pCurSim->pOrigStatObj->Clone( true, false, true );
@@ -332,10 +340,8 @@ namespace ShroudPlugin
         return FinishActivation( pCurSim, sFile );
     }
 
-    bool CShroudWrapper::FinishActivation( CShroudSimulation* pCurSim, const char* sFile )
+    bool CShroudWrapper::StartActivation( CShroudSimulation* pCurSim, const char* sFile )
     {
-        bool bRet = false;
-
         // Create the Shroud Object.
         pCurSim->pShroudObject = m_pShroudMgr->CreateObject();
 
@@ -365,7 +371,7 @@ namespace ShroudPlugin
         {
             gPlugin->LogError( "File not found %s", sFile );
             delete pCurSim;
-            return( bRet );
+            return( false );
         }
 
         if ( buffer && length > 0 )
@@ -391,8 +397,15 @@ namespace ShroudPlugin
         {
             gPlugin->LogError( "[%s] Unable to create ShroudInstance", sFile );
             delete pCurSim;
-            return( bRet );
+            return( false );
         }
+
+        return( true );
+
+    }
+
+    bool CShroudWrapper::FinishActivation( CShroudSimulation* pCurSim, const char* sFile )
+    {
 
         if ( pCurSim->bIsCharacter )
         {
@@ -464,7 +477,7 @@ namespace ShroudPlugin
                     );
                     pCurSim->pOrigStatObj->SetFlags( pCurSim->pOrigStatObj->GetFlags() & 0xFFFFFFFE ); // undo hide
                     delete pCurSim;
-                    return( bRet );
+                    return( false );
                 }
 
                 if ( pCurSim->vtxCount != vertCount )
@@ -555,7 +568,7 @@ namespace ShroudPlugin
         m_pSimulations[m_iNextFreeSim] = pCurSim;
         m_iNextFreeSim++;
 
-        return bRet;
+        return ( true );
     }
 
     void CShroudWrapper::OnPreRender()

@@ -116,6 +116,7 @@ namespace ShroudPlugin
 
             bool ActivateCharacterCloth( IEntity* pEntity, const char* sFile, const char* sAttName );
             bool ActivateStatObjCloth( IEntity* pEntity, const char* sFile );
+            bool StartActivation( CShroudSimulation* pCurSim, const char* sFile );
             bool FinishActivation( CShroudSimulation* pCurSim, const char* sFile );
             bool AlreadyActivated( IEntity* pEntity, const char* sAttName );
             void EntityRemoved( IEntity* pEntity );
