@@ -84,8 +84,8 @@ namespace ShroudPlugin
         private:
             void Init()
             {
-                pShroudObject = NULL;
-                pShroudInstance = NULL;
+                pShroudObject = NULL; // deletes object if no more instances exist
+                pShroudInstance = NULL; // deletes instance if no more references exist
                 vtxCount = 0;
                 idxCount = 0;
                 pStatObj = NULL;
@@ -122,6 +122,8 @@ namespace ShroudPlugin
             void EntityRemoved( IEntity* pEntity );
             void StartUpdate( CShroudSimulation* pCurSim );
             void FinishUpdate( CShroudSimulation* pCurSim );
+
+            CloakWorks::IShroudObjectPtr FindLoadedObject( const char* sFile );
 
             // see IGameFrameworkListener
             virtual void OnPostUpdate( float fDeltaTime ) {};

@@ -342,56 +342,67 @@ namespace ShroudPlugin
 
     bool CShroudWrapper::StartActivation( CShroudSimulation* pCurSim, const char* sFile )
     {
-        // Create the Shroud Object.
-        pCurSim->pShroudObject = m_pShroudMgr->CreateObject();
 
-        char* buffer = NULL;
-        size_t length = 0;
-        FILE* m_infile = fopen( sFile, "rb" );
+        // check if we already have this sFile loaded
+        CloakWorks::IShroudObjectPtr pShObj;
 
-        if ( m_infile )
+        if ( pShObj = FindLoadedObject( sFile ) )
         {
-            // find the length of the file
-            fseek( m_infile, 0, SEEK_END );
-            length = ftell( m_infile );
-            fseek( m_infile, 0, SEEK_SET );
-
-            // allocate memory for the file:
-            buffer = new char [length + 1];
-
-            // read data as a block:
-            size_t readCount = fread ( buffer, length, 1, m_infile ) * length;
-
-            fclose( m_infile );
-
-            buffer[readCount - 1] = '\0';
+            pCurSim->pShroudObject = pShObj;
         }
 
         else
         {
-            gPlugin->LogError( "File not found %s", sFile );
-            delete pCurSim;
-            return( false );
-        }
+            // Create the Shroud Object.
+            pCurSim->pShroudObject = m_pShroudMgr->CreateObject();
 
-        if ( buffer && length > 0 )
-        {
-            bool loadResult = pCurSim->pShroudObject->Load( buffer, length );
-            delete [] buffer;
+            char* buffer = NULL;
+            size_t length = 0;
+            FILE* m_infile = fopen( sFile, "rb" );
 
-            if ( loadResult )
+            if ( m_infile )
             {
-                pCurSim->pShroudObject->GenerateMissingMeshes();
-                pCurSim->pShroudObject->Initialize();
-                pCurSim->pShroudInstance = pCurSim->pShroudObject->CreateInstance();
+                // find the length of the file
+                fseek( m_infile, 0, SEEK_END );
+                length = ftell( m_infile );
+                fseek( m_infile, 0, SEEK_SET );
 
+                // allocate memory for the file:
+                buffer = new char [length + 1];
+
+                // read data as a block:
+                size_t readCount = fread ( buffer, length, 1, m_infile ) * length;
+
+                fclose( m_infile );
+
+                buffer[readCount - 1] = '\0';
             }
 
             else
             {
-                pCurSim->pShroudInstance = NULL;
+                gPlugin->LogError( "File not found %s", sFile );
+                return( false );
+            }
+
+            if ( buffer && length > 0 )
+            {
+                bool loadResult = pCurSim->pShroudObject->Load( buffer, length );
+                delete [] buffer;
+
+                if ( loadResult )
+                {
+                    pCurSim->pShroudObject->GenerateMissingMeshes();
+                    pCurSim->pShroudObject->Initialize();
+                }
+
+                else
+                {
+                    return( false );
+                }
             }
         }
+
+        pCurSim->pShroudInstance = pCurSim->pShroudObject->CreateInstance();
 
         if ( !pCurSim->pShroudInstance )
         {
@@ -569,6 +580,11 @@ namespace ShroudPlugin
         m_iNextFreeSim++;
 
         return ( true );
+    }
+
+    CloakWorks::IShroudObjectPtr CShroudWrapper::FindLoadedObject( const char* sFile )
+    {
+        return NULL;
     }
 
     void CShroudWrapper::OnPreRender()
