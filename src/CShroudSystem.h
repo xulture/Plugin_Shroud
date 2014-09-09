@@ -63,7 +63,7 @@ namespace ShroudPlugin
             IStatObj* pOrigStatObj;
             IEntity* pEntity;
             EntityId entityId;
-            IEntity* pCharEntity;
+            IEntity* pOriginalEntity;
             IAttachment* pAttachment;
             IRenderMesh* pRenderMesh;
             IRenderNode* pRenderNode;
@@ -92,7 +92,7 @@ namespace ShroudPlugin
                 pStatObj = NULL;
                 pOrigStatObj = NULL;
                 pEntity = NULL;
-                pCharEntity = NULL;
+                pOriginalEntity = NULL;
                 pAttachment = NULL;
                 pRenderNode = NULL;
                 bIsCharacter = false;

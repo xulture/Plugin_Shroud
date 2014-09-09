@@ -107,7 +107,7 @@ namespace ShroudPlugin
 
             if ( pCurSim->bIsCharacter )
             {
-                existingID = pCurSim->pCharEntity->GetId();
+                existingID = pCurSim->pOriginalEntity->GetId();
             }
 
             else
@@ -140,19 +140,9 @@ namespace ShroudPlugin
             EntityId newID = pEntity->GetId();
             EntityId existingID;
 
-            if ( pCurSim->bIsCharacter )
-            {
-                existingID = pCurSim->pCharEntity->GetId();
-            }
+            existingID = pCurSim->pOriginalEntity->GetId();
 
-            else
-            {
-                existingID = pCurSim->pEntity->GetId();
-            }
-
-            if (
-                existingID == newID
-            )
+            if ( existingID == newID )
             {
                 pCurSim->bIsDisabled = true;
             }
@@ -250,7 +240,7 @@ namespace ShroudPlugin
                 pNewEntity->SetMaterial( pCharacter->GetIAttachmentManager()->GetInterfaceByName( sAttName )->GetIAttachmentObject()->GetReplacementMaterial() );
 
                 pCurSim->pStatObj = pNewStatObj;
-                pCurSim->pCharEntity = pEntity; // for access to location and skeleton
+                pCurSim->pOriginalEntity = pEntity; // for access to location and skeleton
                 pCurSim->pEntity = pNewEntity;  // for access to mesh
                 pCurSim->entityId = pNewEntity->GetId();
 
@@ -331,7 +321,7 @@ namespace ShroudPlugin
         pNewEntity->SetMaterial( pEntity->GetMaterial() );
 
         pCurSim->pStatObj = pNewStatObj;
-        pCurSim->pCharEntity = pEntity; // for access to location and skeleton
+        pCurSim->pOriginalEntity = pEntity; // for access to location and skeleton
         pCurSim->pEntity = pNewEntity;  // for access to mesh
         pCurSim->entityId = pNewEntity->GetId();
 
@@ -381,7 +371,7 @@ namespace ShroudPlugin
 
             else
             {
-                gPlugin->LogError( "File not found %s", pCurSim->sFile );
+                gPlugin->LogError( "Entity=[%d,%s] File not found=[%s]", pCurSim->entityId, pCurSim->pEntity->GetName(), pCurSim->sFile );
                 return( false );
             }
 
@@ -430,7 +420,7 @@ namespace ShroudPlugin
 
                 if ( transform->GetBoneName() )
                 {
-                    pCurSim->m_transformToBoneMap[i] = pCurSim->pCharEntity->GetCharacter( 0 )->GetIDefaultSkeleton().GetJointIDByName( transform->GetBoneName() );
+                    pCurSim->m_transformToBoneMap[i] = pCurSim->pOriginalEntity->GetCharacter( 0 )->GetIDefaultSkeleton().GetJointIDByName( transform->GetBoneName() );
                 }
             }
 
@@ -443,7 +433,7 @@ namespace ShroudPlugin
 
                 if ( collider->GetBoneName() )
                 {
-                    pCurSim->m_colliderToBoneMap[i] = pCurSim->pCharEntity->GetCharacter( 0 )->GetIDefaultSkeleton().GetJointIDByName( collider->GetBoneName() );
+                    pCurSim->m_colliderToBoneMap[i] = pCurSim->pOriginalEntity->GetCharacter( 0 )->GetIDefaultSkeleton().GetJointIDByName( collider->GetBoneName() );
                 }
             }
         }
@@ -582,7 +572,7 @@ namespace ShroudPlugin
             }
         }
 
-        IEntityRenderProxy* pRenderProxy = ( IEntityRenderProxy* )pCurSim->pCharEntity->GetProxy( ENTITY_PROXY_RENDER ); // need to check if main char entity is drawn
+        IEntityRenderProxy* pRenderProxy = ( IEntityRenderProxy* )pCurSim->pOriginalEntity->GetProxy( ENTITY_PROXY_RENDER ); // need to check if main char entity is drawn
         pCurSim->pRenderNode = pRenderProxy->GetRenderNode();
 
         gPlugin->LogAlways( "[%s] Simulation [%s] created", pCurSim->sFile, pCurSim->pEntity->GetName() );
@@ -713,7 +703,7 @@ namespace ShroudPlugin
 
         if ( pCurSim->bIsCharacter )
         {
-            tm = pCurSim->pCharEntity->GetSlotWorldTM( 0 );
+            tm = pCurSim->pOriginalEntity->GetSlotWorldTM( 0 );
             pCurSim->pEntity->SetWorldTM( tm );
         }
 
@@ -743,8 +733,8 @@ namespace ShroudPlugin
                 if ( pCurSim->m_transformToBoneMap[i] != -1 )
                 {
 
-                    Vec3 ce_pos = pCurSim->pCharEntity->GetSlotWorldTM( 0 ) * pCurSim->pCharEntity->GetCharacter( 0 )->GetISkeletonPose()->GetAbsJointByID( pCurSim->m_transformToBoneMap[i] ).t;
-                    Quat ce_rot = pCurSim->pCharEntity->GetRotation() * pCurSim->pCharEntity->GetCharacter( 0 )->GetISkeletonPose()->GetAbsJointByID( pCurSim->m_transformToBoneMap[i] ).q;
+                    Vec3 ce_pos = pCurSim->pOriginalEntity->GetSlotWorldTM( 0 ) * pCurSim->pOriginalEntity->GetCharacter( 0 )->GetISkeletonPose()->GetAbsJointByID( pCurSim->m_transformToBoneMap[i] ).t;
+                    Quat ce_rot = pCurSim->pOriginalEntity->GetRotation() * pCurSim->pOriginalEntity->GetCharacter( 0 )->GetISkeletonPose()->GetAbsJointByID( pCurSim->m_transformToBoneMap[i] ).q;
 
                     CloakWorks::Matrix44 mtx (
                         ce_rot.GetColumn0().x,  ce_rot.GetColumn1().x,  ce_rot.GetColumn2().x,  ce_pos.x,
@@ -772,8 +762,8 @@ namespace ShroudPlugin
             {
                 if ( pCurSim->m_colliderToBoneMap[i] != -1 )
                 {
-                    Vec3 ce_pos = pCurSim->pCharEntity->GetSlotWorldTM( 0 ) * pCurSim->pCharEntity->GetCharacter( 0 )->GetISkeletonPose()->GetAbsJointByID( pCurSim->m_colliderToBoneMap[i] ).t;
-                    Quat ce_rot = pCurSim->pCharEntity->GetRotation() * pCurSim->pCharEntity->GetCharacter( 0 )->GetISkeletonPose()->GetAbsJointByID( pCurSim->m_colliderToBoneMap[i] ).q;
+                    Vec3 ce_pos = pCurSim->pOriginalEntity->GetSlotWorldTM( 0 ) * pCurSim->pOriginalEntity->GetCharacter( 0 )->GetISkeletonPose()->GetAbsJointByID( pCurSim->m_colliderToBoneMap[i] ).t;
+                    Quat ce_rot = pCurSim->pOriginalEntity->GetRotation() * pCurSim->pOriginalEntity->GetCharacter( 0 )->GetISkeletonPose()->GetAbsJointByID( pCurSim->m_colliderToBoneMap[i] ).q;
 
                     CloakWorks::Matrix44 mtx (
                         ce_rot.GetColumn0().x,  ce_rot.GetColumn1().x,  ce_rot.GetColumn2().x,  ce_pos.x,
