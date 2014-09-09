@@ -451,8 +451,18 @@ namespace ShroudPlugin
         CloakWorks::uint32 iNumMeshes = pCurSim->pShroudInstance->GetNumMeshes();
         assert( iNumMeshes == 1 );
 
+        CloakWorks::Matrix44 root_mtx ( pCurSim->pShroudObject->GetMeshObject( 0 )->GetWorldMatrix() );
+
+        if ( root_mtx != CloakWorks::Matrix44( CloakWorks::Matrix44::kInitIdentity ) )
+        {
+            gPlugin->LogError( "[%s] render mesh not at 0,0,0, please re-export from Shroud with pos and rot=[0,0,0]", pCurSim->sFile );
+            delete pCurSim;
+            return( false );
+        }
+
         for ( CloakWorks::uint32 i = 0; i < iNumMeshes; ++i )
         {
+
             CloakWorks::IMeshInstance* meshInstance = pCurSim->pShroudInstance->GetMeshInstance( i );
 
             const CloakWorks::IMeshLODInstance* meshLODInstance = meshInstance->GetCurrentMeshLOD();
