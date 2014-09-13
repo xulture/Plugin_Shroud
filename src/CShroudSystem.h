@@ -5,6 +5,11 @@
 #include <StdAfx.h>
 #include <CPluginShroud.h>
 #include <JobManager.h>
+#include <Shroud/ICollisionFilter.h>
+#include <Shroud/ICollider.h>
+#include <Shroud/Sphere.h>
+#include <Shroud/Plane.h>
+#include <Shroud/Capsule.h>
 
 namespace ShroudPlugin
 {
@@ -56,6 +61,7 @@ namespace ShroudPlugin
             strided_pointer<Vec3> spNrm;
             unsigned int ceVertCount; // vertex count in Cryengine
             unsigned int shVertCount; // vertex count in Shroud
+            unsigned int loadedCeVertCount;
             std::vector< std::list< int > > uVertMap;
             IStatObj* pStatObj;
             IStatObj* pOrigStatObj;
@@ -66,6 +72,8 @@ namespace ShroudPlugin
             IRenderMesh* pRenderMesh;
             IRenderNode* pRenderNode;
             const char* sFile;
+            CloakWorks::Plane* colGround;
+            CloakWorks::Capsule* colPlayer;
 
             bool bIsCharacter;
             bool bIsDisabled;
@@ -96,6 +104,7 @@ namespace ShroudPlugin
                 bIsCharacter = false;
                 bIsDisabled = false;
                 m_fSimTime = 0.01f;
+                uVertMap.empty();
             }
     };
 
@@ -119,10 +128,10 @@ namespace ShroudPlugin
             bool FinishActivation( CShroudSimulation* pCurSim );
             bool AlreadyActivated( IEntity* pEntity, const char* sAttName );
             void EntityRemoved( IEntity* pEntity );
-            void StartUpdate( CShroudSimulation* pCurSim );
-            void FinishUpdate( CShroudSimulation* pCurSim );
+            static void StartUpdate( CShroudSimulation* pCurSim );
+            static void FinishUpdate( CShroudSimulation* pCurSim );
 
-            CloakWorks::IShroudObjectPtr FindLoadedObject( const char* sFile );
+            CShroudSimulation* FindLoadedSim( const char* sFile );
 
             // see IGameFrameworkListener
             virtual void OnPostUpdate( float fDeltaTime ) {};

@@ -143,14 +143,15 @@ namespace ShroudPlugin
             static int GetNumProcessors();
 
             // IJobMgr Functions:
-            virtual CloakWorks::JobHandle   LaunchJob( CloakWorks::JobEntryFunction funcPtr, void* data );
-            virtual void                    WaitForJob( CloakWorks::JobHandle handle );
+            virtual CloakWorks::JobHandle      LaunchJob( CloakWorks::JobEntryFunction funcPtr, void* data );
+            virtual void                       WaitForJob( CloakWorks::JobHandle handle );
+            virtual void                       WaitForAllJobs();
 
-            JobContext                      m_jobContext;
+            JobContext                         m_jobContext;
 
         private:
-            std::vector<WorkerThread*>      m_threads;
-            DWORD                           m_jobIDCounter;
+            std::vector<WorkerThread*>         m_threads;
+            DWORD                              m_jobIDCounter;
     };
 
     typedef CloakWorks::ref_ptr<JobManager> JobManagerPtr;

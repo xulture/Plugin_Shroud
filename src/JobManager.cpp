@@ -294,6 +294,27 @@ namespace ShroudPlugin
         }
     }
 
+    void JobManager::WaitForAllJobs()
+    {
+        // we don't actually wait, just grind through the queue
+        if ( !m_threads.empty() )
+        {
+            JobDesc job = m_jobContext.PopJobFromQueue();
+
+            while ( job.IsValid() )
+            {
+                // Run the job
+                job.m_jobFunc( job.m_jobData );
+
+                // Add the job to the completed list
+                m_jobContext.AddFinishedJob( job );
+
+                // get next
+                job = m_jobContext.PopJobFromQueue();
+            }
+        }
+
+    }
 
     void JobManager::WaitForJob( CloakWorks::JobHandle handle )
     {

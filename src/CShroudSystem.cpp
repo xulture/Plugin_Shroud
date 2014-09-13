@@ -44,7 +44,7 @@ namespace ShroudPlugin
         , m_bUpdateSkipped( false )
         , m_iNextFreeSim( 1 )
     {
-        m_pJobMgr = new JobManager( JobManager::GetNumProcessors() - 1 );
+        m_pJobMgr = new JobManager( JobManager::GetNumProcessors() * 4 );
         m_pLogger = new CLogger();
     }
 
@@ -337,11 +337,11 @@ namespace ShroudPlugin
     {
 
         // check if we already have this sFile loaded
-        CloakWorks::IShroudObjectPtr pShObj;
-
-        if ( pShObj = FindLoadedObject( pCurSim->sFile ) )
+        if ( CShroudSimulation* pLoadedSim = FindLoadedSim( pCurSim->sFile ) )
         {
-            pCurSim->pShroudObject = pShObj;
+            pCurSim->pShroudObject = pLoadedSim->pShroudObject;
+            pCurSim->uVertMap = pLoadedSim->uVertMap;
+            pCurSim->loadedCeVertCount = pLoadedSim->ceVertCount;
         }
 
         else
@@ -411,6 +411,8 @@ namespace ShroudPlugin
     bool CShroudWrapper::FinishActivation( CShroudSimulation* pCurSim )
     {
 
+        CloakWorks::ICollisionMgr* collisionMgr = pCurSim->pShroudInstance->GetCollisionMgr();
+
         if ( pCurSim->bIsCharacter )
         {
             // only applies if simulation is on a character
@@ -426,7 +428,6 @@ namespace ShroudPlugin
                 }
             }
 
-            CloakWorks::ICollisionMgr* collisionMgr = pCurSim->pShroudInstance->GetCollisionMgr();
             pCurSim->m_colliderToBoneMap.resize( collisionMgr->GetNumColliders(), -1 );
 
             for ( size_t i = 0; i < collisionMgr->GetNumColliders(); ++i )
@@ -439,6 +440,7 @@ namespace ShroudPlugin
                 }
             }
         }
+
 
         CloakWorks::uint32 iNumMeshes = pCurSim->pShroudInstance->GetNumMeshes();
         assert( iNumMeshes == 1 );
@@ -476,30 +478,35 @@ namespace ShroudPlugin
 
             }
 
-            // create vertex index map between shroud and cryengine, since array is not sorted equally
-            // map is an array, each of the shroud vertices is assigned one destination cryengine vertex
-
-            pCurSim->uVertMap.resize( pCurSim->shVertCount );
-
-
-            for ( int i = 0; i < pCurSim->shVertCount; ++i )
+            // if we havent already loaded vertex map...
+            if ( pCurSim->uVertMap.size() == 0 || pCurSim->ceVertCount != pCurSim->loadedCeVertCount )
             {
-                std::list< int > ceVerts;
+                // create vertex index map between shroud and cryengine, since array is not sorted equally
+                // map is an array, each of the shroud vertices is assigned one destination cryengine vertex
 
-                for ( int j = 0; j < pCurSim->ceVertCount; ++j )
+                pCurSim->uVertMap.resize( pCurSim->shVertCount );
+
+
+                for ( int i = 0; i < pCurSim->shVertCount; ++i )
                 {
-                    f32 x = pCurSim->spVtx[j].x - positions[i * 4];
-                    f32 y = pCurSim->spVtx[j].y - positions[i * 4 + 1];
-                    f32 z = pCurSim->spVtx[j].z - positions[i * 4 + 2];
-                    f32 dist_squared = x * x + y * y + z * z;
+                    std::list< int > ceVerts;
 
-                    if ( dist_squared < 0.0000001 )
+                    for ( int j = 0; j < pCurSim->ceVertCount; ++j )
                     {
-                        ceVerts.push_back( j );
+                        f32 x = pCurSim->spVtx[j].x - positions[i * 4];
+                        f32 y = pCurSim->spVtx[j].y - positions[i * 4 + 1];
+                        f32 z = pCurSim->spVtx[j].z - positions[i * 4 + 2];
+                        f32 dist_squared = x * x + y * y + z * z;
+
+                        if ( dist_squared < 0.0000001 )
+                        {
+                            ceVerts.push_back( j );
+                        }
                     }
+
+                    pCurSim->uVertMap[i] = ceVerts;
                 }
 
-                pCurSim->uVertMap[i] = ceVerts;
             }
 
             if ( ! pCurSim->bIsCharacter )
@@ -511,105 +518,6 @@ namespace ShroudPlugin
         IEntityRenderProxy* pRenderProxy = ( IEntityRenderProxy* )pCurSim->pOriginalEntity->GetProxy( ENTITY_PROXY_RENDER ); // need to check if main char entity is drawn
         pCurSim->pRenderNode = pRenderProxy->GetRenderNode();
 
-        gPlugin->LogAlways( "[%s] Simulation [%s] created", pCurSim->sFile, pCurSim->pEntity->GetName() );
-
-        m_pSimulations[m_iNextFreeSim] = pCurSim;
-        m_iNextFreeSim++;
-
-        return ( true );
-    }
-
-    CloakWorks::IShroudObjectPtr CShroudWrapper::FindLoadedObject( const char* sFile )
-    {
-        for ( tSimHolder::const_iterator iter = m_pSimulations.begin(); iter != m_pSimulations.end(); ++iter )
-        {
-            CShroudSimulation* pCurSim = ( *iter ).second;
-
-            if ( !strcmp( sFile, pCurSim->sFile ) )
-            {
-                gPlugin->LogAlways( "reusing shroud_object already loaded" );
-                return pCurSim->pShroudObject;
-            }
-        }
-
-        // else
-        return NULL;
-    }
-
-    void CShroudWrapper::OnPreRender()
-    {
-        if ( m_bIsUpdating || m_iNextFreeSim == 1 )
-        {
-            // no simulations created or update already started
-            // gPlugin->LogError( "already in update, not starting again" );
-            return;
-        }
-
-        float fFrameTime = gEnv->pTimer->GetFrameTime();
-        //
-        // start updates via Job Manager (copy from CE)
-        //
-        m_bIsUpdating = true;
-
-        int i = 0;
-
-        for ( tSimHolder::const_iterator iter = m_pSimulations.begin(); iter != m_pSimulations.end(); ++iter )
-        {
-            ( ( CShroudSimulation* )( *iter ).second )->m_fSimTime = fFrameTime;
-            StartUpdate( ( CShroudSimulation* )( *iter ).second );
-            i++;
-        }
-
-        //
-        // wait for all updates to complete
-        //
-        while ( size_t leftovers = m_pJobMgr->m_jobContext.GetNumQueuedJobs() > 0 )
-        {
-            Sleep( leftovers < 10 ? leftovers : 10 ); // that many milliseconds but not more than 10
-        }
-
-        //
-        // finish updates via Job Manager (copy to CE)
-        //
-        i = 0;
-
-        for ( tSimHolder::const_iterator iter = m_pSimulations.begin(); iter != m_pSimulations.end(); ++iter )
-        {
-            FinishUpdate( ( CShroudSimulation* )( *iter ).second );
-            i++;
-        }
-
-
-        m_bIsUpdating = false;
-    }
-
-    void CShroudWrapper::StartUpdate( CShroudSimulation* pCurSim )
-    {
-        if ( pCurSim->bIsDisabled )
-        {
-            return;
-        }
-
-        IViewSystem* iv = gEnv->pGame->GetIGameFramework()->GetIViewSystem();
-        const SViewParams* vp = iv->GetView( iv->GetActiveViewId() )->GetCurrentParams();
-        CloakWorks::Vector3 cameraDir( CloakWorks::Vector3( vp->rotation.GetFwdX(), vp->rotation.GetFwdY(), vp->rotation.GetFwdZ() )  );
-
-        int last_draw = pCurSim->pRenderNode->GetDrawFrame();
-        int frame_id = gEnv->pRenderer->GetFrameID( );
-        //gPlugin->LogAlways( "Last draw = %d, frame_id = %d", last_draw, frame_id );
-
-        if ( last_draw + 1 == frame_id || last_draw + 2 == frame_id ) // it appears that ocean is drawn in a separate frame, so we need to check 2 frames ago, as well
-        {
-            //gPlugin->LogAlways( "Shroud %s is visible", pCurSim->pEntity->GetName() );
-        }
-
-        else
-        {
-            //gPlugin->LogAlways( "Shroud %s is NOT visible", pCurSim->pEntity->GetName() );
-            return;
-        }
-
-        // TODO: double check if this should be happening on each frame:
         for ( size_t i = 0; i < pCurSim->pShroudInstance->GetNumSimulations(); ++i )
         {
             CloakWorks::ISimulationInstance* simInstance = pCurSim->pShroudInstance->GetSimulationInstance( i );
@@ -634,6 +542,108 @@ namespace ShroudPlugin
                 blendCtrl->SetGlobalBlendWeight( blendWeight );
             }
 
+        }
+
+        gPlugin->LogAlways( "[%s] Simulation [%s] created", pCurSim->sFile, pCurSim->pEntity->GetName() );
+
+        m_pSimulations[m_iNextFreeSim] = pCurSim;
+        m_iNextFreeSim++;
+
+        return ( true );
+    }
+
+    CShroudSimulation* CShroudWrapper::FindLoadedSim( const char* sFile )
+    {
+        for ( tSimHolder::const_iterator iter = m_pSimulations.begin(); iter != m_pSimulations.end(); ++iter )
+        {
+            CShroudSimulation* pCurSim = ( *iter ).second;
+
+            if ( !strcmp( sFile, pCurSim->sFile ) )
+            {
+                gPlugin->LogAlways( "reusing shroud_object already loaded" );
+                return pCurSim;
+            }
+        }
+
+        // else
+        return NULL;
+    }
+
+    void CShroudWrapper::OnPreRender()
+    {
+        if ( m_bIsUpdating || m_iNextFreeSim == 1 )
+        {
+            // no simulations created or update already started
+            // gPlugin->LogError( "already in update, not starting again" );
+            return;
+        }
+
+        float fFrameTime = gEnv->pTimer->GetFrameTime();
+        m_bIsUpdating = true;
+
+        std::list<CloakWorks::JobHandle> handles;
+
+        //handles.clear();
+
+        for ( tSimHolder::const_iterator iter = m_pSimulations.begin(); iter != m_pSimulations.end(); ++iter )
+        {
+            ( ( CShroudSimulation* )( *iter ).second )->m_fSimTime = fFrameTime;
+
+            //CloakWorks::JobHandle h =  m_pJobMgr->LaunchJob( ( CloakWorks::JobEntryFunction ) &StartUpdate, ( CShroudSimulation* )( *iter ).second );
+            //handles.push_back( h );
+            StartUpdate( ( CShroudSimulation* )( *iter ).second );
+        }
+
+        //for ( std::list<CloakWorks::JobHandle>::iterator h = handles.begin(); h != handles.end(); h++ )
+        //{
+        //    m_pJobMgr->WaitForJob( *h );
+        //}
+
+        // check for zombies
+        while ( m_pJobMgr->m_jobContext.GetNumQueuedJobs() > 0 ) {}
+
+        //handles.clear();
+
+        for ( tSimHolder::const_iterator iter = m_pSimulations.begin(); iter != m_pSimulations.end(); ++iter )
+        {
+            //CloakWorks::JobHandle h = m_pJobMgr->LaunchJob( ( CloakWorks::JobEntryFunction ) &FinishUpdate, ( CShroudSimulation* )( *iter ).second );
+            //handles.push_back( h );
+            FinishUpdate( ( CShroudSimulation* )( *iter ).second );
+        }
+
+        //for ( std::list<CloakWorks::JobHandle>::iterator h = handles.begin(); h != handles.end(); h++ )
+        //{
+        //    m_pJobMgr->WaitForJob( *h );
+        //}
+
+        m_bIsUpdating = false;
+    }
+
+    void CShroudWrapper::StartUpdate( CShroudSimulation* pCurSim )
+    {
+        if ( pCurSim->bIsDisabled )
+        {
+            return;
+        }
+
+        // Camera orientation not currently used, no need to get coords
+        //IViewSystem* iv = gEnv->pGame->GetIGameFramework()->GetIViewSystem();
+        //const SViewParams* vp = iv->GetView( iv->GetActiveViewId() )->GetCurrentParams();
+        //CloakWorks::Vector3 cameraDir( CloakWorks::Vector3( vp->rotation.GetFwdX(), vp->rotation.GetFwdY(), vp->rotation.GetFwdZ() )  );
+
+        int last_draw = pCurSim->pRenderNode->GetDrawFrame();
+        int frame_id = gEnv->pRenderer->GetFrameID( );
+        //gPlugin->LogAlways( "Last draw = %d, frame_id = %d", last_draw, frame_id );
+
+        if ( last_draw + 1 == frame_id || last_draw + 2 == frame_id ) // it appears that ocean is drawn in a separate frame, so we need to check 2 frames ago, as well
+        {
+            //gPlugin->LogAlways( "Shroud %s is visible", pCurSim->pEntity->GetName() );
+        }
+
+        else
+        {
+            //gPlugin->LogAlways( "Shroud %s is NOT visible", pCurSim->pEntity->GetName() );
+            return;
         }
 
         Matrix34 tm;
@@ -743,8 +753,7 @@ namespace ShroudPlugin
                 const CloakWorks::IMeshLODObject* meshLODObject     = meshLODInstance->GetSourceObject();
 
                 const float* positions = meshLODInstance->GetPositions();
-                const float* normals   = meshLODInstance->GetNormals();
-                //const float* tangents  = meshLODInstance->GetTangents();
+                //const float* normals   = meshLODInstance->GetNormals();
 
                 for ( int i = 0; i < pCurSim->shVertCount; ++i )
                 {
@@ -754,18 +763,13 @@ namespace ShroudPlugin
                         pCurSim->spVtx[*it].y = positions[i * 4 + 1];
                         pCurSim->spVtx[*it].z = positions[i * 4 + 2];
 
-                        pCurSim->spNrm[*it].x = normals[i * 4];
-                        pCurSim->spNrm[*it].y = normals[i * 4 + 1];
-                        pCurSim->spNrm[*it].z = normals[i * 4 + 2];
+                        //pCurSim->spNrm[*it].x = normals[i * 4];
+                        //pCurSim->spNrm[*it].y = normals[i * 4 + 1];
+                        //pCurSim->spNrm[*it].z = normals[i * 4 + 2];
                     }
                 }
 
-                pCurSim->pRenderMesh->LockForThreadAccess();
-
                 pCurSim->pStatObj = pCurSim->pStatObj->UpdateVertices( pCurSim->spVtx, pCurSim->spNrm, 0, pCurSim->ceVertCount );
-                pCurSim->pEntity->SetStatObj( pCurSim->pStatObj, 0, false );
-
-                pCurSim->pRenderMesh->UnLockForThreadAccess();
             }
         }
     }
