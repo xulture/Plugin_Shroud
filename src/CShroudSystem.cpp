@@ -33,7 +33,7 @@ namespace ShroudPlugin
             gEnv->pEntitySystem->RemoveEntity( entityId );
         }
 
-        delete( this->uVertMap );
+        this->uVertMap.empty();
 
         Init();
     }
@@ -478,11 +478,13 @@ namespace ShroudPlugin
 
             // create vertex index map between shroud and cryengine, since array is not sorted equally
             // map is an array, each of the shroud vertices is assigned one destination cryengine vertex
-            pCurSim->uVertMap = new int[pCurSim->shVertCount];
+
+            pCurSim->uVertMap.resize( pCurSim->shVertCount );
+
 
             for ( int i = 0; i < pCurSim->shVertCount; ++i )
             {
-                pCurSim->uVertMap[i] = -1; // initialize in case we don't have a match
+                std::list< int > ceVerts;
 
                 for ( int j = 0; j < pCurSim->ceVertCount; ++j )
                 {
@@ -491,12 +493,13 @@ namespace ShroudPlugin
                     f32 z = pCurSim->spVtx[j].z - positions[i * 4 + 2];
                     f32 dist_squared = x * x + y * y + z * z;
 
-                    if ( dist_squared < 0.000001 )
+                    if ( dist_squared < 0.0000001 )
                     {
-                        pCurSim->uVertMap[i] = j;
+                        ceVerts.push_back( j );
                     }
                 }
 
+                pCurSim->uVertMap[i] = ceVerts;
             }
 
             if ( ! pCurSim->bIsCharacter )
@@ -745,15 +748,15 @@ namespace ShroudPlugin
 
                 for ( int i = 0; i < pCurSim->shVertCount; ++i )
                 {
-                    if ( pCurSim->uVertMap[i] >= 0 )
+                    for ( std::list<int>::iterator it = pCurSim->uVertMap[i].begin(); it != pCurSim->uVertMap[i].end(); it++ )
                     {
-                        pCurSim->spVtx[pCurSim->uVertMap[i]].x = positions[i * 4];
-                        pCurSim->spVtx[pCurSim->uVertMap[i]].y = positions[i * 4 + 1];
-                        pCurSim->spVtx[pCurSim->uVertMap[i]].z = positions[i * 4 + 2];
+                        pCurSim->spVtx[*it].x = positions[i * 4];
+                        pCurSim->spVtx[*it].y = positions[i * 4 + 1];
+                        pCurSim->spVtx[*it].z = positions[i * 4 + 2];
 
-                        pCurSim->spNrm[pCurSim->uVertMap[i]].x = normals[i * 4];
-                        pCurSim->spNrm[pCurSim->uVertMap[i]].y = normals[i * 4 + 1];
-                        pCurSim->spNrm[pCurSim->uVertMap[i]].z = normals[i * 4 + 2];
+                        pCurSim->spNrm[*it].x = normals[i * 4];
+                        pCurSim->spNrm[*it].y = normals[i * 4 + 1];
+                        pCurSim->spNrm[*it].z = normals[i * 4 + 2];
                     }
                 }
 

@@ -56,7 +56,7 @@ namespace ShroudPlugin
             strided_pointer<Vec3> spNrm;
             unsigned int ceVertCount; // vertex count in Cryengine
             unsigned int shVertCount; // vertex count in Shroud
-            int* uVertMap;
+            std::vector< std::list< int > > uVertMap;
             IStatObj* pStatObj;
             IStatObj* pOrigStatObj;
             IEntity* pEntity;
@@ -87,7 +87,6 @@ namespace ShroudPlugin
                 pShroudInstance = NULL; // deletes instance if no more references exist
                 ceVertCount = 0;
                 shVertCount = 0;
-                uVertMap = NULL;
                 pStatObj = NULL;
                 pOrigStatObj = NULL;
                 pEntity = NULL;
