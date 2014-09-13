@@ -54,11 +54,9 @@ namespace ShroudPlugin
 
             strided_pointer<Vec3> spVtx;
             strided_pointer<Vec3> spNrm;
-            strided_pointer<uint16> spIdx;
-            strided_pointer<SMeshTexCoord> spUVs;
-            strided_pointer<SMeshTangents> spTangents;
-            int vtxCount;
-            int idxCount;
+            unsigned int ceVertCount; // vertex count in Cryengine
+            unsigned int shVertCount; // vertex count in Shroud
+            int* uVertMap;
             IStatObj* pStatObj;
             IStatObj* pOrigStatObj;
             IEntity* pEntity;
@@ -87,8 +85,9 @@ namespace ShroudPlugin
             {
                 pShroudObject = NULL; // deletes object if no more instances exist
                 pShroudInstance = NULL; // deletes instance if no more references exist
-                vtxCount = 0;
-                idxCount = 0;
+                ceVertCount = 0;
+                shVertCount = 0;
+                uVertMap = NULL;
                 pStatObj = NULL;
                 pOrigStatObj = NULL;
                 pEntity = NULL;
