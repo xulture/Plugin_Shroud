@@ -145,7 +145,6 @@ namespace ShroudPlugin
             // IJobMgr Functions:
             virtual CloakWorks::JobHandle      LaunchJob( CloakWorks::JobEntryFunction funcPtr, void* data );
             virtual void                       WaitForJob( CloakWorks::JobHandle handle );
-            virtual void                       WaitForAllJobs();
 
             JobContext                         m_jobContext;
 

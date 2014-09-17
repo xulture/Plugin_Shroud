@@ -441,6 +441,20 @@ namespace ShroudPlugin
             }
         }
 
+        // Terrain and Player colliders
+        //CloakWorks::ICollider* colliderGround = collisionMgr->AddCollider( CloakWorks::Plane::MyTypeInfo()->GetName() );
+        //colliderGround->SetFrictionScale( 0.2f );
+        //pCurSim->colGround = CloakWorks::reflection_cast<CloakWorks::Plane>( colliderGround->GetShape() );
+        //pCurSim->colGround->SetReferencePos( CloakWorks::Vector3( 0, 0, 0 ) );
+        //pCurSim->colGround->SetNormal( CloakWorks::Vector3( 0, 0, 1 ) );
+        //
+        //CloakWorks::ICollider* colliderPlayer = collisionMgr->AddCollider( CloakWorks::Capsule::MyTypeInfo()->GetName() );
+        //colliderPlayer->SetFrictionScale( 0.2f );
+        //pCurSim->colPlayer = CloakWorks::reflection_cast<CloakWorks::Capsule>( colliderPlayer->GetShape() );
+        //pCurSim->colPlayer->SetRadius1( 0.4f );
+        //pCurSim->colPlayer->SetRadius2( 0.4f );
+        //pCurSim->colPlayer->SetOffset1( CloakWorks::Vector3( 0, 0, 0.4f ) );
+        //pCurSim->colPlayer->SetOffset2( CloakWorks::Vector3( 0, 0, 1.6f ) );
 
         CloakWorks::uint32 iNumMeshes = pCurSim->pShroudInstance->GetNumMeshes();
         assert( iNumMeshes == 1 );
@@ -583,7 +597,7 @@ namespace ShroudPlugin
 
         std::list<CloakWorks::JobHandle> handles;
 
-        //handles.clear();
+        handles.clear();
 
         for ( tSimHolder::const_iterator iter = m_pSimulations.begin(); iter != m_pSimulations.end(); ++iter )
         {
@@ -602,7 +616,7 @@ namespace ShroudPlugin
         // check for zombies
         while ( m_pJobMgr->m_jobContext.GetNumQueuedJobs() > 0 ) {}
 
-        //handles.clear();
+        handles.clear();
 
         for ( tSimHolder::const_iterator iter = m_pSimulations.begin(); iter != m_pSimulations.end(); ++iter )
         {
