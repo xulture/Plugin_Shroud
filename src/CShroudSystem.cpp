@@ -767,7 +767,7 @@ namespace ShroudPlugin
                 const CloakWorks::IMeshLODObject* meshLODObject     = meshLODInstance->GetSourceObject();
 
                 const float* positions = meshLODInstance->GetPositions();
-                //const float* normals   = meshLODInstance->GetNormals();
+                const float* normals   = meshLODInstance->GetNormals();
 
                 for ( int i = 0; i < pCurSim->shVertCount; ++i )
                 {
@@ -777,9 +777,9 @@ namespace ShroudPlugin
                         pCurSim->spVtx[*it].y = positions[i * 4 + 1];
                         pCurSim->spVtx[*it].z = positions[i * 4 + 2];
 
-                        //pCurSim->spNrm[*it].x = normals[i * 4];
-                        //pCurSim->spNrm[*it].y = normals[i * 4 + 1];
-                        //pCurSim->spNrm[*it].z = normals[i * 4 + 2];
+                        pCurSim->spNrm[*it].x = normals[i * 4];
+                        pCurSim->spNrm[*it].y = normals[i * 4 + 1];
+                        pCurSim->spNrm[*it].z = normals[i * 4 + 2];
                     }
                 }
 
