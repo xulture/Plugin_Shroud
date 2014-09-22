@@ -321,6 +321,7 @@ namespace ShroudPlugin
         pNewEntity->SetStatObj( pNewStatObj, 0, false );
         pNewEntity->SetWorldTM( pEntity->GetWorldTM() );
         pNewEntity->SetMaterial( pEntity->GetMaterial() );
+        pCurSim->scale = pEntity->GetScale().z;  // only uniform scaling at this stage; only on static objects
 
         pCurSim->pStatObj = pNewStatObj;
         pCurSim->pOriginalEntity = pEntity; // for access to location and skeleton
@@ -489,6 +490,7 @@ namespace ShroudPlugin
                 pCurSim->ceVertCount = pMesh->GetVertexCount();
                 pCurSim->spVtx = strided_pointer<Vec3>( pMesh->m_pPositions );
                 pCurSim->spNrm = strided_pointer<Vec3>( pMesh->m_pNorms );
+                pCurSim->spTangents = strided_pointer<SMeshTangents>( pMesh->m_pTangents );
 
             }
 
@@ -595,40 +597,20 @@ namespace ShroudPlugin
         float fFrameTime = gEnv->pTimer->GetFrameTime();
         m_bIsUpdating = true;
 
-        std::list<CloakWorks::JobHandle> handles;
-
-        handles.clear();
-
         for ( tSimHolder::const_iterator iter = m_pSimulations.begin(); iter != m_pSimulations.end(); ++iter )
         {
             ( ( CShroudSimulation* )( *iter ).second )->m_fSimTime = fFrameTime;
 
-            //CloakWorks::JobHandle h =  m_pJobMgr->LaunchJob( ( CloakWorks::JobEntryFunction ) &StartUpdate, ( CShroudSimulation* )( *iter ).second );
-            //handles.push_back( h );
             StartUpdate( ( CShroudSimulation* )( *iter ).second );
         }
 
-        //for ( std::list<CloakWorks::JobHandle>::iterator h = handles.begin(); h != handles.end(); h++ )
-        //{
-        //    m_pJobMgr->WaitForJob( *h );
-        //}
-
-        // check for zombies
+        // wait for all threads to finish
         while ( m_pJobMgr->m_jobContext.GetNumQueuedJobs() > 0 ) {}
-
-        handles.clear();
 
         for ( tSimHolder::const_iterator iter = m_pSimulations.begin(); iter != m_pSimulations.end(); ++iter )
         {
-            //CloakWorks::JobHandle h = m_pJobMgr->LaunchJob( ( CloakWorks::JobEntryFunction ) &FinishUpdate, ( CShroudSimulation* )( *iter ).second );
-            //handles.push_back( h );
             FinishUpdate( ( CShroudSimulation* )( *iter ).second );
         }
-
-        //for ( std::list<CloakWorks::JobHandle>::iterator h = handles.begin(); h != handles.end(); h++ )
-        //{
-        //    m_pJobMgr->WaitForJob( *h );
-        //}
 
         m_bIsUpdating = false;
     }
@@ -768,6 +750,7 @@ namespace ShroudPlugin
 
                 const float* positions = meshLODInstance->GetPositions();
                 const float* normals   = meshLODInstance->GetNormals();
+                const float* tangents  = meshLODInstance->GetTangents();
 
                 for ( int i = 0; i < pCurSim->shVertCount; ++i )
                 {
@@ -777,13 +760,24 @@ namespace ShroudPlugin
                         pCurSim->spVtx[*it].y = positions[i * 4 + 1];
                         pCurSim->spVtx[*it].z = positions[i * 4 + 2];
 
-                        pCurSim->spNrm[*it].x = normals[i * 4];
-                        pCurSim->spNrm[*it].y = normals[i * 4 + 1];
-                        pCurSim->spNrm[*it].z = normals[i * 4 + 2];
+                        // it appears that, after all, best visuals come if we don't touch any other elements apart from vertex positions
+                        // this code is left here for reference
+
+                        //Vec3 ceTangents( tangents[i * 4], tangents[i * 4 + 1], tangents[i * 4 + 2] );
+                        //Vec3 ceNormals( normals[i * 4], normals[i * 4 + 1], normals[i * 4 + 2] );
+                        //Vec3 ceBinormals = ceTangents.Cross( ceNormals );
+
+                        //tPackB2F( pCurSim->spTangents[i].Tangent, ceTangents );
+                        //tPackB2F( pCurSim->spTangents[i].Binormal, ceBinormals );
+
+                        //pCurSim->spNrm[*it].x = normals[i * 4];
+                        //pCurSim->spNrm[*it].y = normals[i * 4 + 1];
+                        //pCurSim->spNrm[*it].z = normals[i * 4 + 2];
+
                     }
                 }
 
-                pCurSim->pStatObj = pCurSim->pStatObj->UpdateVertices( pCurSim->spVtx, pCurSim->spNrm, 0, pCurSim->ceVertCount );
+                pCurSim->pStatObj = pCurSim->pStatObj->UpdateVertices( pCurSim->spVtx, pCurSim->spNrm, 0, pCurSim->ceVertCount, 0, pCurSim->scale );
             }
         }
     }

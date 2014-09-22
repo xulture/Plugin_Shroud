@@ -59,10 +59,12 @@ namespace ShroudPlugin
 
             strided_pointer<Vec3> spVtx;
             strided_pointer<Vec3> spNrm;
+            strided_pointer<SMeshTangents> spTangents;
             unsigned int ceVertCount; // vertex count in Cryengine
             unsigned int shVertCount; // vertex count in Shroud
             unsigned int loadedCeVertCount;
             std::vector< std::list< int > > uVertMap;
+            float scale;
             IStatObj* pStatObj;
             IStatObj* pOrigStatObj;
             IEntity* pEntity;
@@ -104,6 +106,7 @@ namespace ShroudPlugin
                 bIsCharacter = false;
                 bIsDisabled = false;
                 m_fSimTime = 0.01f;
+                scale = 1.0f;
                 uVertMap.empty();
             }
     };
